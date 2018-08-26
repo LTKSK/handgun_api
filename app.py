@@ -1,11 +1,19 @@
+# -*- coding: utf-8 -*-
+"""
+flask app
+
+Copyright (C) 2018 Keisuke Tsuji
+"""
 from flask import (
     Flask,
     jsonify,
     request,
     redirect,
     url_for)
+from flask_cors import CORS
 from infrastructure import mongo_service
 app = Flask(__name__)
+CORS(app)
 
 
 @app.route('/')
