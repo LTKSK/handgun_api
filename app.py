@@ -1,6 +1,10 @@
-from flask import Flask, redirect, url_for
-
-
+from flask import (
+    Flask,
+    jsonify,
+    request,
+    redirect,
+    url_for)
+from infrastructure import mongo_service
 app = Flask(__name__)
 
 
@@ -9,18 +13,33 @@ def index():
     return redirect(url_for("chats"))
 
 
-@app.route('/chats', methods=["GET", "POST"])
-def chats():
-    return "Hello Chats"
+@app.route('/chats', methods=["GET"])
+def get_chats():
+    db = mongo_service.db()
+    response = []
+    for result in db["chat"].find():
+        result["_id"] = str(result["_id"])
+        response.append(result)
+    return jsonify(response)
 
 
-@app.route('/review-targets/<int:chatid>', methods=["GET", "POST", "PUT"])
-def review_targets():
+@app.route('/chats/<string:name>', methods=["POST"])
+def post_chats(name):
+    db = mongo_service.db()
+    collection = db["chat"]
+    document = {"name": name,
+                "messages": []}
+    collection.insert_one(document)
+    return request.data
+
+
+@app.route('/review-targets/<string:chatname>', methods=["GET", "POST", "PUT"])
+def review_targets(chatname):
     pass
 
 
-@app.route('/messages/<int:chatid>', methods=["GET", "PUT"])
-def messages():
+@app.route('/messages/<string:chatname>', methods=["GET", "PUT"])
+def messages(chatname):
     pass
 
 
