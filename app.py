@@ -18,36 +18,36 @@ CORS(app)
 
 @app.route('/')
 def index():
-    return redirect(url_for("chats"))
+    return redirect(url_for("channels"))
 
 
-@app.route('/chats', methods=["GET"])
-def get_chats():
+@app.route('/channels', methods=["GET"])
+def get_channels():
     db = mongo_service.db()
     response = []
-    for result in db["chat"].find():
+    for result in db["channel"].find():
         result["_id"] = str(result["_id"])
         response.append(result)
     return jsonify(response)
 
 
-@app.route('/chats/<string:name>', methods=["POST"])
+@app.route('/channels/<string:name>', methods=["POST"])
 def post_chats(name):
     db = mongo_service.db()
-    collection = db["chat"]
+    collection = db["channel"]
     document = {"name": name,
                 "messages": []}
     collection.insert_one(document)
     return request.data
 
 
-@app.route('/review-targets/<string:chatname>', methods=["GET", "POST", "PUT"])
-def review_targets(chatname):
+@app.route('/review-targets/<string:channelname>', methods=["GET", "POST", "PUT"])
+def review_targets(channelname):
     pass
 
 
-@app.route('/messages/<string:chatname>', methods=["GET", "PUT"])
-def messages(chatname):
+@app.route('/messages/<string:channelname>', methods=["GET", "PUT"])
+def messages(channelname):
     pass
 
 
