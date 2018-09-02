@@ -49,23 +49,31 @@ def post_channels(name):
     return request.data
 
 
-@app.route('/review-targets', methods=["POST"])
-def upload_review_target():
+@app.route('/review-targets/<string:channelname>', methods=["POST"])
+def upload_review_target(channelname):
     if len(request.files) == 0:
         abort(400)
     # save files
+    save_dir = os.path.join(app.config['UPLOAD_FOLDER'], channelname)
+    try:
+        os.mkdir(save_dir)
+    except FileExistsError:
+        pass
     for review_target in request.files.values():
         filename = secure_filename(review_target.filename)
         if filename.split(".")[-1] not in _ALLOWED_EXTENSIONS:
             abort(400)
-        review_target.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        file_path = os.path.join(save_dir, filename)
+        if os.path.exists(file_path):
+            abort(403)
+        review_target.save(file_path)
     response = jsonify({"ok": True})
     response.status_code = 201
     return response
 
 
-@app.route('/review-targets/<string:channelname>', methods=["GET", "POST", "PUT"])
-def get_review_targets(channelname):
+@app.route('/review-targets/<string:channelname>', methods=["GET", "PUT"])
+def get_review_target(channelname):
     pass
 
 
