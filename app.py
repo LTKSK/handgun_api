@@ -4,16 +4,23 @@ flask app
 
 Copyright (C) 2018 Keisuke Tsuji
 """
+import os
 from flask import (
     Flask,
     jsonify,
     request,
     redirect,
-    url_for)
+    url_for,
+    abort)
 from flask_cors import CORS
+from werkzeug.utils import secure_filename
 from infrastructure import mongo_service
+
+
 app = Flask(__name__)
+app.config["UPLOAD_FOLDER"] = os.environ["HUNDGUN_UPLOAD_FOLDER"]
 CORS(app)
+_ALLOWED_EXTENSIONS = ["jpeg", "jpg", "png"]
 
 
 @app.route('/')
@@ -32,7 +39,8 @@ def get_channels():
 
 
 @app.route('/channels/<string:name>', methods=["POST"])
-def post_chats(name):
+def post_channels(name):
+    # todo 既にあるやつは作れないようにする
     db = mongo_service.db()
     collection = db["channel"]
     document = {"name": name,
@@ -41,13 +49,28 @@ def post_chats(name):
     return request.data
 
 
+@app.route('/review-targets', methods=["POST"])
+def upload_review_target():
+    if len(request.files) == 0:
+        abort(400)
+    # save files
+    for review_target in request.files.values():
+        filename = secure_filename(review_target.filename)
+        if filename.split(".")[-1] not in _ALLOWED_EXTENSIONS:
+            abort(400)
+        review_target.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+    response = jsonify({"ok": True})
+    response.status_code = 201
+    return response
+
+
 @app.route('/review-targets/<string:channelname>', methods=["GET", "POST", "PUT"])
-def review_targets(channelname):
+def get_review_targets(channelname):
     pass
 
 
 @app.route('/messages/<string:channelname>', methods=["GET", "PUT"])
-def messages(channelname):
+def get_messages(channelname):
     pass
 
 
