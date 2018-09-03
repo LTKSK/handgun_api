@@ -11,6 +11,7 @@ from flask import (
     request,
     redirect,
     url_for,
+    send_from_directory,
     abort)
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
@@ -40,41 +41,39 @@ def get_channels():
 
 @app.route('/channels/<string:name>', methods=["POST"])
 def post_channels(name):
-    # todo 既にあるやつは作れないようにする
-    db = mongo_service.db()
-    collection = db["channel"]
-    document = {"name": name,
-                "messages": []}
-    collection.insert_one(document)
-    return request.data
-
-
-@app.route('/review-targets/<string:channelname>', methods=["POST"])
-def upload_review_target(channelname):
     if len(request.files) == 0:
         abort(400)
     # save files
-    save_dir = os.path.join(app.config['UPLOAD_FOLDER'], channelname)
+    save_dir = os.path.join(app.config["UPLOAD_FOLDER"], name)
     try:
         os.mkdir(save_dir)
     except FileExistsError:
         pass
+    # upload files (but now, there is one file in files)
     for review_target in request.files.values():
         filename = secure_filename(review_target.filename)
         if filename.split(".")[-1] not in _ALLOWED_EXTENSIONS:
             abort(400)
         file_path = os.path.join(save_dir, filename)
-        if os.path.exists(file_path):
+        if request.method == "POST" and os.path.exists(file_path):
             abort(403)
         review_target.save(file_path)
-    response = jsonify({"ok": True})
-    response.status_code = 201
-    return response
+
+    db = mongo_service.db()
+    collection = db["channel"]
+    document = {"name": name, "messages": []}
+    collection.insert_one(document)
+    return request.data
 
 
-@app.route('/review-targets/<string:channelname>', methods=["GET", "PUT"])
+@app.route('/review-targets/<string:channelname>', methods=["GET"])
 def get_review_target(channelname):
-    pass
+    saved_dir = os.path.join(app.config["UPLOAD_FOLDER"], channelname)
+    file_names = os.listdir(saved_dir)
+    if not file_names:
+        abort(404)
+    # now, one file only. multi file will be supported in the future.
+    return send_from_directory(saved_dir, file_names[0])
 
 
 @app.route('/messages/<string:channelname>', methods=["GET", "PUT"])
