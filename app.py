@@ -5,6 +5,7 @@ flask app
 Copyright (C) 2018 Keisuke Tsuji
 """
 import os
+import json
 from flask import (
     Flask,
     jsonify,
@@ -76,9 +77,20 @@ def get_review_target(channelname):
     return send_from_directory(saved_dir, file_names[0])
 
 
-@app.route('/messages/<string:channelname>', methods=["GET", "PUT"])
+@app.route('/channels/<string:channelname>/messages', methods=["POST"])
+def post_messages(channelname):
+    if request.method == "POST":
+        data = json.loads(request.data)
+        db = mongo_service.db()
+        collection = db["channel"]
+        collection.update_one(filter={"name": channelname},
+                              update={"$set": data})
+        return request.data
+
+
+@app.route('/channels/<string:channelname>/messages', methods=["GET"])
 def get_messages(channelname):
-    pass
+    return jsonify([])
 
 
 if __name__ == "__main__":
