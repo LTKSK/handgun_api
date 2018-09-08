@@ -6,7 +6,7 @@
 
 ``` bash
 # create virtualenviron
-python3 -m venv venv
+python -m virtualenv venv
 
 # activate
 .\venv\Scripts\activate.bat
@@ -14,6 +14,7 @@ python3 -m venv venv
 # or, on Linux
 source ./venv/Scripts/activate
 
-# set below environs
-set HUNFGUN_CONFIG_PATH=%CD%\handgun_config.yml
+# please check config/handgun_config file.
+# and run app.
+python app.py
 ```

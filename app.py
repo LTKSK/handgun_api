@@ -20,7 +20,9 @@ from infrastructure import mongo_service
 
 
 app = Flask(__name__)
-app.config["UPLOAD_FOLDER"] = os.environ["HUNDGUN_UPLOAD_FOLDER"]
+
+upload_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "upload")
+app.config["UPLOAD_FOLDER"] = upload_dir
 CORS(app)
 _ALLOWED_EXTENSIONS = ["jpeg", "jpg", "png"]
 
