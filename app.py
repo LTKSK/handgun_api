@@ -86,13 +86,23 @@ def post_messages(channelname):
         db = mongo_service.db()
         collection = db["channel"]
         collection.update_one(filter={"name": channelname},
-                              update={"$set": data})
+                              update={"$push": {"messages": data}})
         return request.data
 
 
 @app.route('/channels/<string:channelname>/messages', methods=["GET"])
 def get_messages(channelname):
-    return jsonify([])
+    db = mongo_service.db()
+    collection = db["channel"]
+    document = collection.find_one({"name": channelname})
+    if not document:
+        abort(404)
+    return jsonify(document.get("messages", []))
+
+
+@app.route('/channels/<string:channelname>/layers', methods=["GET"])
+def get_layer(channelname):
+    pass
 
 
 if __name__ == "__main__":
