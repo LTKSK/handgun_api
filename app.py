@@ -23,6 +23,7 @@ app = Flask(__name__)
 
 upload_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "upload")
 app.config["UPLOAD_FOLDER"] = upload_dir
+app.config['JSON_AS_ASCII'] = False
 CORS(app)
 _ALLOWED_EXTENSIONS = ["jpeg", "jpg", "png"]
 
@@ -32,77 +33,117 @@ def index():
     return redirect(url_for("channels"))
 
 
+# channel end points
 @app.route('/channels', methods=["GET"])
 def get_channels():
-    db = mongo_service.db()
     response = []
-    for result in db["channel"].find():
+    for result in mongo_service.db()["channel"].find():
         result["_id"] = str(result["_id"])
         response.append(result)
     return jsonify(response)
 
 
-@app.route('/channels/<string:name>', methods=["POST"])
-def post_channels(name):
+@app.route('/channels', methods=["POST"])
+def post_channel():
+    collection = mongo_service.db()["channel"]
+    data = json.loads(request.data)
+    document = {"name": data["name"]}
+    collection.insert_one(document)
+    return request.data
+
+
+@app.route('/channels/<string:channel>/review-target', methods=["POST"])
+def post_review_target(channel):
     if len(request.files) == 0:
         abort(400)
     # save files
-    save_dir = os.path.join(app.config["UPLOAD_FOLDER"], name)
+    save_dir = os.path.join(app.config["UPLOAD_FOLDER"], channel)
     try:
         os.mkdir(save_dir)
     except FileExistsError:
         pass
     # upload files (but now, there is one file in files)
+    db = mongo_service.db()
     for review_target in request.files.values():
         filename = secure_filename(review_target.filename)
         if filename.split(".")[-1] not in _ALLOWED_EXTENSIONS:
             abort(400)
         file_path = os.path.join(save_dir, filename)
-        if request.method == "POST" and os.path.exists(file_path):
+        if os.path.exists(file_path):
             abort(403)
         review_target.save(file_path)
-
-    db = mongo_service.db()
-    collection = db["channel"]
-    document = {"name": name, "messages": []}
-    collection.insert_one(document)
+        review_target_collection = db["review_target"]
+        document = {"channel": channel,
+                    "name": filename}
+        review_target_collection.insert_one(document)
     return request.data
 
 
-@app.route('/review-targets/<string:channelname>', methods=["GET"])
-def get_review_target(channelname):
-    saved_dir = os.path.join(app.config["UPLOAD_FOLDER"], channelname)
-    file_names = os.listdir(saved_dir)
-    if not file_names:
+# review_target end points
+@app.route('/channels/<string:channel>/review-target', methods=["GET"])
+def get_review_target(channel):
+    collection = mongo_service.db()["review_target"]
+    query = {"channel": channel}
+    review_target_data = collection.find_one(query)
+    if not review_target_data.get("name"):
         abort(404)
+    saved_dir = os.path.join(app.config["UPLOAD_FOLDER"],
+                             review_target_data["channel"])
     # now, one file only. multi file will be supported in the future.
-    return send_from_directory(saved_dir, file_names[0])
+    result = send_from_directory(saved_dir, review_target_data["name"])
+    return result
 
 
-@app.route('/channels/<string:channelname>/messages', methods=["POST"])
-def post_messages(channelname):
+@app.route('/channels/<string:channel>/review-target/layer', methods=["POST", "PUT"])
+def post_layer(channel):
+    data = json.loads(request.data)
+    data["channel"] = channel
+    db = mongo_service.db()
+    collection = db["review_target"]
+    if request.method == "POST":
+        collection.insert_one(data)
+        return request.data
+    # in PUT case
+    collection.update_one(filter={"channel": channel},
+                          update=data)
+    return jsonify(data)
+
+
+
+@app.route('/channels/<string:channel>/review-target/layer', methods=["GET"])
+def get_layer(channel):
+    db = mongo_service.db()
+    collection = db["review_target"]
+    document = list(collection.find({"channel": channel}))
+    if not document:
+        return jsonify([])
+    for doc_element in document:
+        doc_element["_id"] = str(doc_element["_id"])
+    return jsonify(document)
+
+
+# message end points
+@app.route('/channels/<string:channel>/messages', methods=["POST"])
+def post_messages(channel):
     if request.method == "POST":
         data = json.loads(request.data)
+        data["channel"] = channel
         db = mongo_service.db()
-        collection = db["channel"]
-        collection.update_one(filter={"name": channelname},
-                              update={"$push": {"messages": data}})
+        collection = db["message"]
+        collection.insert_one(data)
         return request.data
 
 
-@app.route('/channels/<string:channelname>/messages', methods=["GET"])
-def get_messages(channelname):
+@app.route('/channels/<string:channel>/messages', methods=["GET"])
+def get_messages(channel):
     db = mongo_service.db()
-    collection = db["channel"]
-    document = collection.find_one({"name": channelname})
+    collection = db["message"]
+    document = list(collection.find({"channel": channel}).sort("index"))
     if not document:
-        abort(404)
-    return jsonify(document.get("messages", []))
-
-
-@app.route('/channels/<string:channelname>/layers', methods=["GET"])
-def get_layer(channelname):
-    pass
+        return jsonify([])
+    for doc_element in document:
+        doc_element["_id"] = str(doc_element["_id"])
+    return jsonify(document)
 
 
 if __name__ == "__main__":
