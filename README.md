@@ -14,6 +14,8 @@ python -m virtualenv venv
 # or, on Linux
 source ./venv/Scripts/activate
 
+# install modules
+python -m pip install -r requirements.txt
 # please check config/handgun_config file.
 # and run app.
 python app.py
