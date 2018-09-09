@@ -74,7 +74,8 @@ def post_review_target(channel):
         review_target.save(file_path)
         review_target_collection = db["review_target"]
         document = {"channel": channel,
-                    "name": filename}
+                    "name": filename,
+                    "layer": {}}
         review_target_collection.insert_one(document)
     return request.data
 
@@ -83,43 +84,32 @@ def post_review_target(channel):
 @app.route('/channels/<string:channel>/review-target', methods=["GET"])
 def get_review_target(channel):
     collection = mongo_service.db()["review_target"]
-    query = {"channel": channel}
-    review_target_data = collection.find_one(query)
+    review_target_data = collection.find_one({"channel": channel})
     if not review_target_data.get("name"):
         abort(404)
     saved_dir = os.path.join(app.config["UPLOAD_FOLDER"],
                              review_target_data["channel"])
     # now, one file only. multi file will be supported in the future.
-    result = send_from_directory(saved_dir, review_target_data["name"])
-    return result
+    return send_from_directory(saved_dir, review_target_data["name"])
 
 
-@app.route('/channels/<string:channel>/review-target/layer', methods=["POST", "PUT"])
-def post_layer(channel):
+@app.route('/channels/<string:channel>/review-target/layer', methods=["PUT"])
+def update_layer(channel):
     data = json.loads(request.data)
-    data["channel"] = channel
-    db = mongo_service.db()
-    collection = db["review_target"]
-    if request.method == "POST":
-        collection.insert_one(data)
-        return request.data
-    # in PUT case
-    collection.update_one(filter={"channel": channel},
-                          update=data)
-    return jsonify(data)
-
+    collection = mongo_service.db()["review_target"]
+    if request.method == "PUT":
+        collection.update_one(filter={"channel": channel},
+                              update={"$set": {"layer": data}})
+        return jsonify(data)
 
 
 @app.route('/channels/<string:channel>/review-target/layer', methods=["GET"])
 def get_layer(channel):
-    db = mongo_service.db()
-    collection = db["review_target"]
-    document = list(collection.find({"channel": channel}))
+    collection = mongo_service.db()["review_target"]
+    document = collection.find_one({"channel": channel})
     if not document:
-        return jsonify([])
-    for doc_element in document:
-        doc_element["_id"] = str(doc_element["_id"])
-    return jsonify(document)
+        return jsonify({})
+    return jsonify(document["layer"])
 
 
 # message end points
