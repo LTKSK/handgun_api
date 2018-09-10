@@ -63,7 +63,7 @@ def post_review_target(channel):
     except FileExistsError:
         pass
     # upload files (but now, there is one file in files)
-    db = mongo_service.db()
+    review_target_collection = mongo_service.db()["review_target"]
     for review_target in request.files.values():
         filename = secure_filename(review_target.filename)
         if filename.split(".")[-1] not in _ALLOWED_EXTENSIONS:
@@ -72,7 +72,6 @@ def post_review_target(channel):
         if os.path.exists(file_path):
             abort(403)
         review_target.save(file_path)
-        review_target_collection = db["review_target"]
         document = {"channel": channel,
                     "name": filename,
                     "layer": {}}
