@@ -52,7 +52,7 @@ def post_channel():
     return request.data
 
 
-@app.route('/channels/<string:channel>/review-target', methods=["POST"])
+@app.route('/channels/<string:channel>/review-targets', methods=["POST"])
 def post_review_target(channel):
     if len(request.files) == 0:
         abort(400)
@@ -80,7 +80,7 @@ def post_review_target(channel):
 
 
 # review_target end points
-@app.route('/channels/<string:channel>/review-target', methods=["GET"])
+@app.route('/channels/<string:channel>/review-targets', methods=["GET"])
 def get_review_target(channel):
     collection = mongo_service.db()["review_target"]
     review_target_data = collection.find_one({"channel": channel})
@@ -92,17 +92,16 @@ def get_review_target(channel):
     return send_from_directory(saved_dir, review_target_data["name"])
 
 
-@app.route('/channels/<string:channel>/review-target/layer', methods=["PUT"])
+@app.route('/channels/<string:channel>/review-targets/layer', methods=["PUT"])
 def update_layer(channel):
     data = json.loads(request.data)
     collection = mongo_service.db()["review_target"]
-    if request.method == "PUT":
-        collection.update_one(filter={"channel": channel},
-                              update={"$set": {"layer": data}})
-        return jsonify(data)
+    collection.update_one(filter={"channel": channel},
+                          update={"$set": {"layer": data}})
+    return '', 204
 
 
-@app.route('/channels/<string:channel>/review-target/layer', methods=["GET"])
+@app.route('/channels/<string:channel>/review-targets/layer', methods=["GET"])
 def get_layer(channel):
     collection = mongo_service.db()["review_target"]
     document = collection.find_one({"channel": channel})
@@ -114,13 +113,12 @@ def get_layer(channel):
 # message end points
 @app.route('/channels/<string:channel>/messages', methods=["POST"])
 def post_messages(channel):
-    if request.method == "POST":
-        data = json.loads(request.data)
-        data["channel"] = channel
-        db = mongo_service.db()
-        collection = db["message"]
-        collection.insert_one(data)
-        return request.data
+    data = json.loads(request.data)
+    data["channel"] = channel
+    db = mongo_service.db()
+    collection = db["message"]
+    collection.insert_one(data)
+    return request.data
 
 
 @app.route('/channels/<string:channel>/messages', methods=["GET"])
