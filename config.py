@@ -11,7 +11,7 @@ with open(config_path) as config_data:
     _CONFIG_DATA = yaml.load(config_data)
 
 def mongo_host():
-    pass
+    return _CONFIG_DATA["MONGODB"]["HOST"]
 
 def mongo_port():
-    pass
+    return int(_CONFIG_DATA["MONGODB"]["PORT"])
