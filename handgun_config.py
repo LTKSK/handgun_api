@@ -15,3 +15,6 @@ def mongo_host():
 
 def mongo_port():
     return int(_CONFIG_DATA["MONGODB"]["PORT"])
+
+def debug_mode():
+    return _CONFIG_DATA["APPLICATION"]["DEBUG_MODE"]

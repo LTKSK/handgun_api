@@ -1,6 +1,7 @@
 # handgun_api
 
-> This project is api of ['handgun'](https://github.com/LTKSK/handgun)
+> This project is api of ['handgun'](https://github.com/LTKSK/handgun).
+
 > This project need mongodb.
 
 ## setup

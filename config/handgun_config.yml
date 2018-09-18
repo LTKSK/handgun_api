@@ -1,3 +1,5 @@
+APPLICATION:
+  DEBUG_MODE: True
 MONGODB:
   HOST: "localhost"
   PORT: 27017

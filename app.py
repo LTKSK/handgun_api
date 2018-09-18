@@ -17,9 +17,11 @@ from flask import (
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 from infrastructure import mongo_service
+import handgun_config
 
 
 app = Flask(__name__)
+
 
 upload_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "upload")
 app.config["UPLOAD_FOLDER"] = upload_dir
@@ -134,4 +136,4 @@ def get_messages(channel):
 
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5000, debug=True)
+    app.run(host="127.0.0.1", port=5000, debug=handgun_config.debug_mode())
