@@ -35,6 +35,26 @@ def index():
     return redirect(url_for("channels"))
 
 
+@app.route('/users', methods=["POST"])
+def users():
+    collection = mongo_service.db()["user"]
+    data = json.loads(request.data)
+    document = {"name": data["username"],
+                "password": data["password"]}
+    collection.insert_one(document)
+    return request.data
+
+
+@app.route('/login', methods=["POST"])
+def login():
+    pass
+
+
+@app.route('/logout', methods=["POST"])
+def logout():
+    pass
+
+
 # channel end points
 @app.route('/channels', methods=["GET"])
 def get_channels():
