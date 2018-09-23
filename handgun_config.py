@@ -18,3 +18,6 @@ def mongo_port():
 
 def debug_mode():
     return _CONFIG_DATA["APPLICATION"]["DEBUG_MODE"]
+
+def jwt_secret_key():
+    return _CONFIG_DATA["APPLICATION"]["AUTHORIZATION"]["SECRET_KEY"]

@@ -17,7 +17,9 @@ from flask import (
     abort)
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash, check_password_hash
 from infrastructure import mongo_service
+from auth import authorization
 import handgun_config
 
 
@@ -42,15 +44,34 @@ def users():
     data = json.loads(request.data)
     if not re.search(r"^[a-zA-Z0-9]\w*[a-zA-Z0-9]$", data["username"]):
         abort(400)
+    if collection.find_one({"name": data["username"]}):
+        abort(409)
     document = {"name": data["username"],
-                "password": data["password"]}
+                "password": generate_password_hash(data["password"],
+                                                   method="sha256")}
     collection.insert_one(document)
     return request.data
 
 
 @app.route('/login', methods=["POST"])
 def login():
-    pass
+    collection = mongo_service.db()["user"]
+    data = json.loads(request.data)
+    if not isinstance(data["username"], str):
+        abort(400)
+    if not isinstance(data["password"], str):
+        abort(400)
+    document_filter = {"name": data["username"]}
+    document = collection.find_one(document_filter)
+    if document is None:
+        abort(400)
+    if not check_password_hash(document["password"], data["password"]):
+        abort(400)
+    return jsonify({"token":
+                    authorization.encode_jwt({
+                        "name": data["username"],
+                        "password": data["password"]}).decode()
+                   })
 
 
 @app.route('/logout', methods=["POST"])
@@ -60,7 +81,8 @@ def logout():
 
 # channel end points
 @app.route('/channels', methods=["GET"])
-def get_channels():
+@authorization.require_auth
+def get_channels(user_name):
     response = []
     for result in mongo_service.db()["channel"].find():
         result["_id"] = str(result["_id"])
