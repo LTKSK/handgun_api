@@ -5,6 +5,7 @@ flask app
 Copyright (C) 2018 Keisuke Tsuji
 """
 import os
+import re
 import json
 from flask import (
     Flask,
@@ -39,6 +40,8 @@ def index():
 def users():
     collection = mongo_service.db()["user"]
     data = json.loads(request.data)
+    if not re.search(r"^[a-zA-Z0-9]\w*[a-zA-Z0-9]$", data["username"]):
+        abort(400)
     document = {"name": data["username"],
                 "password": data["password"]}
     collection.insert_one(document)
