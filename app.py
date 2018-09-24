@@ -7,6 +7,7 @@ Copyright (C) 2018 Keisuke Tsuji
 import os
 import re
 import json
+from datetime import datetime
 from flask import (
     Flask,
     jsonify,
@@ -55,14 +56,13 @@ def users():
 
 @app.route('/login', methods=["POST"])
 def login():
-    collection = mongo_service.db()["user"]
     data = json.loads(request.data)
     if not isinstance(data["username"], str):
         abort(400)
     if not isinstance(data["password"], str):
         abort(400)
     document_filter = {"name": data["username"]}
-    document = collection.find_one(document_filter)
+    document = mongo_service.db()["user"].find_one(document_filter)
     if document is None:
         abort(400)
     if not check_password_hash(document["password"], data["password"]):
@@ -85,6 +85,7 @@ def logout():
 def get_channels(user_name):
     response = []
     for result in mongo_service.db()["channel"].find():
+        # convert _id(bytes) > _id(str). Because bytes date can not jsonify
         result["_id"] = str(result["_id"])
         response.append(result)
     return jsonify(response)
@@ -162,6 +163,7 @@ def get_layer(channel):
 def post_messages(channel):
     data = json.loads(request.data)
     data["channel"] = channel
+    data["date"] = datetime.strptime(data["date"], "%Y-%m-%dT%H:%M:%S.%fZ")
     db = mongo_service.db()
     collection = db["message"]
     collection.insert_one(data)
@@ -177,6 +179,7 @@ def get_messages(channel):
         return jsonify([])
     for doc_element in document:
         doc_element["_id"] = str(doc_element["_id"])
+        doc_element["date"] = doc_element["date"].isoformat()
     return jsonify(document)
 
 
