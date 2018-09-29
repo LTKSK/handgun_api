@@ -40,7 +40,7 @@ def index():
 
 
 @app.route('/users', methods=["POST"])
-def users():
+def register_user():
     collection = mongo_service.db()["user"]
     data = json.loads(request.data)
     if not re.search(r"^[a-zA-Z0-9]\w*[a-zA-Z0-9]$", data["username"]):
@@ -52,6 +52,34 @@ def users():
                                                    method="sha256")}
     collection.insert_one(document)
     return request.data
+
+
+@app.route('/users/<string:username>/icon', methods=["POST", "GET"])
+def user_icon(username):
+    if request.method == "POST":
+        if len(request.files) == 0:
+            abort(400)
+        # save files
+        save_dir = os.path.join(app.config["UPLOAD_FOLDER"], channel)
+        try:
+            os.mkdir(save_dir)
+        except FileExistsError:
+            pass
+        # upload files (but now, there is one file in files)
+        review_target_collection = mongo_service.db()["review_target"]
+        for review_target in request.files.values():
+            filename = secure_filename(review_target.filename)
+            if filename.split(".")[-1] not in _ALLOWED_EXTENSIONS:
+                abort(400)
+            file_path = os.path.join(save_dir, filename)
+            if os.path.exists(file_path):
+                abort(403)
+            review_target.save(file_path)
+            document = {"channel": channel,
+                        "name": filename,
+                        "layer": {}}
+            review_target_collection.insert_one(document)
+        return request.data
 
 
 @app.route('/login', methods=["POST"])
