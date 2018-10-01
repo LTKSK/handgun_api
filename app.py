@@ -54,7 +54,7 @@ def register_user():
     return request.data
 
 
-@app.route('/users/<string:username>/icon', methods=["POST", "GET"])
+@app.route('/users/icons/<string:username>', methods=["POST", "GET"])
 def user_icon(username):
     save_dir = os.path.join(app.config["UPLOAD_FOLDER"], "user_icons", username)
     if request.method == "POST":
@@ -64,15 +64,21 @@ def user_icon(username):
             os.makedirs(save_dir)
         except FileExistsError:
             pass
-        for file_name, icon_data in request.files.items():
+        for icon_data in request.files.values():
             extension = icon_data.content_type.split("/")[-1]
             if extension not in _ALLOWED_EXTENSIONS:
                 abort(400)
-            file_path = os.path.join(save_dir, file_name+"."+extension)
+            file_path = os.path.join(save_dir, "icon."+extension)
             icon_data.save(file_path)
         return request.data
     if request.method == "GET":
-        pass
+        saved_dir = os.path.join(app.config["UPLOAD_FOLDER"],
+                                 "user_icons",
+                                 username)
+        files = os.listdir(save_dir)
+        if not files:
+            abort(403)
+        return send_from_directory(saved_dir, files[0])
 
 
 @app.route('/login', methods=["POST"])
