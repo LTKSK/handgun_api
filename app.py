@@ -109,7 +109,7 @@ def logout():
 # channel end points
 @app.route('/channels', methods=["GET"])
 @authorization.require_auth
-def get_channels(user_name):
+def get_channels(authorized_user):
     response = []
     for result in mongo_service.db()["channel"].find():
         # convert _id(bytes) > _id(str). Because bytes date can not jsonify
@@ -119,12 +119,20 @@ def get_channels(user_name):
 
 
 @app.route('/channels', methods=["POST"])
-def post_channel():
+@authorization.require_auth
+def post_channel(authorized_user):
     collection = mongo_service.db()["channel"]
     data = json.loads(request.data)
-    document = {"name": data["name"]}
+    document = {"name": data["name"],
+                "users": [authorized_user]}
     collection.insert_one(document)
     return request.data
+
+
+@app.route('/channels/<string:channelname>/users', methods=["POST"])
+@authorization.require_auth
+def put_channel(channel, authorized_user):
+    pass
 
 
 @app.route('/channels/<string:channel>/review-targets', methods=["POST"])
