@@ -131,7 +131,7 @@ def post_channel(authorized_user):
 
 @app.route('/channels/<string:channelname>/users', methods=["POST"])
 @authorization.require_auth
-def put_channel(channel, authorized_user):
+def put_channel_users(channel, authorized_user):
     pass
 
 

@@ -50,5 +50,5 @@ def require_auth(func):
         if not check_password_hash(document["password"], data["password"]):
             abort(400)
         # add user_name for filtering for find
-        return func(*args, autholized_user=data["name"], **kwargs)
+        return func(*args, authorized_user=data["name"], **kwargs)
     return wrapper
