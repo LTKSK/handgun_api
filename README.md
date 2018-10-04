@@ -29,4 +29,6 @@ python -m pip install -r requirements.txt
 
 # and run app.
 python app.py
+
+# then, you can use 'handgun'.
 ```
