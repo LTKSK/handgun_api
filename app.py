@@ -106,14 +106,25 @@ def logout():
     pass
 
 
+@app.route('/users', methods=["GET"])
+def users():
+    response = []
+    for user in list(mongo_service.db()["user"].find()):
+        # remove values that doesnt needed.
+        user.pop("_id", None)
+        user.pop("password", None)
+        response.append(user)
+    return jsonify(response)
+
+
 # channel end points
 @app.route('/channels', methods=["GET"])
 @authorization.require_auth
 def get_channels(authorized_user):
     response = []
     for result in mongo_service.db()["channel"].find():
-        # convert _id(bytes) > _id(str). Because bytes date can not jsonify
-        result["_id"] = str(result["_id"])
+        # pop _id(bytes) > _id(str). Because bytes date can not jsonify
+        result.pop("_id", None)
         response.append(result)
     return jsonify(response)
 
