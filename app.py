@@ -101,11 +101,6 @@ def login():
                    })
 
 
-@app.route('/logout', methods=["POST"])
-def logout():
-    pass
-
-
 @app.route('/users', methods=["GET"])
 def users():
     response = []
