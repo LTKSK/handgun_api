@@ -135,7 +135,7 @@ def post_channel(authorized_user):
     return request.data
 
 
-@app.route('/channels/<string:channelname>/users', methods=["POST"])
+@app.route('/channels/<string:channelname>/users', methods=["PUT"])
 @authorization.require_auth
 def put_channel_users(channel, authorized_user):
     pass
@@ -213,8 +213,7 @@ def post_messages(channel):
 
 @app.route('/channels/<string:channel>/messages', methods=["GET"])
 def get_messages(channel):
-    db = mongo_service.db()
-    collection = db["message"]
+    collection = mongo_service.db()["message"]
     document = list(collection.find({"channel": channel}).sort("index"))
     if not document:
         return jsonify([])
@@ -222,6 +221,25 @@ def get_messages(channel):
         doc_element["_id"] = str(doc_element["_id"])
         doc_element["date"] = doc_element["date"].isoformat()
     return jsonify(document)
+
+
+@app.route('/channels/<string:channel>/messages', methods=["PUT"])
+def edit_message(channel):
+    data = json.loads(request.data)
+    collection = mongo_service.db()["message"]
+    document_filter = {"channel": channel,
+                       "index": data["index"]}
+    collection.update_one(document_filter, data)
+    return 204
+
+
+@app.route('/channels/<string:channel>/messages/<int:index>',
+           methods=["DELETE"])
+def delete_message(channel, index):
+    collection = mongo_service.db()["message"]
+    collection.delete_one({"channel": channel,
+                           "index": index})
+    return 204
 
 
 if __name__ == "__main__":
