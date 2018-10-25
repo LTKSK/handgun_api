@@ -14,6 +14,7 @@ from flask import (
     request,
     redirect,
     url_for,
+    make_response,
     send_from_directory,
     abort)
 from flask_cors import CORS
@@ -230,7 +231,9 @@ def edit_message(channel):
     document_filter = {"channel": channel,
                        "index": data["index"]}
     collection.update_one(document_filter, data)
-    return 204
+    response = make_response()
+    response.status_code = 204
+    return response
 
 
 @app.route('/channels/<string:channel>/messages/<int:index>',
@@ -239,7 +242,9 @@ def delete_message(channel, index):
     collection = mongo_service.db()["message"]
     collection.delete_one({"channel": channel,
                            "index": index})
-    return 204
+    response = make_response()
+    response.status_code = 204
+    return response
 
 
 if __name__ == "__main__":
