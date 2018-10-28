@@ -219,7 +219,7 @@ def get_messages(channel):
     if not document:
         return jsonify([])
     for doc_element in document:
-        doc_element["_id"] = str(doc_element["_id"])
+        doc_element.pop("_id", None)
         doc_element["date"] = doc_element["date"].isoformat()
     return jsonify(document)
 
@@ -230,7 +230,7 @@ def edit_message(channel):
     collection = mongo_service.db()["message"]
     document_filter = {"channel": channel,
                        "index": data["index"]}
-    collection.update_one(document_filter, data)
+    collection.update_one(document_filter, {"$set": {"value": data["value"]}})
     response = make_response()
     response.status_code = 204
     return response
