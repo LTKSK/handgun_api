@@ -136,6 +136,22 @@ def post_channel(authorized_user):
     return request.data
 
 
+@app.route('/channels/<string:channel>', methods=["DELETE"])
+@authorization.require_auth
+def delete_channel(channel, authorized_user):
+    collection = mongo_service.db()["channel"]
+    result = collection.delete_one({"name": channel,
+                                    "users": {"$in": [authorized_user]}})
+    # if delete_count 0, authorized_user does not delete the channel
+    if result.deleted_count == 0:
+        abort(403)
+    collection = mongo_service.db()["message"]
+    collection.delete_many({"channel": channel})
+    response = make_response()
+    response.status_code = 204
+    return response
+
+
 @app.route('/channels/<string:channelname>/users', methods=["PUT"])
 @authorization.require_auth
 def put_channel_users(channel, authorized_user):
