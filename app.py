@@ -35,11 +35,6 @@ CORS(app)
 _ALLOWED_EXTENSIONS = ["jpeg", "jpg", "png"]
 
 
-@app.route('/')
-def index():
-    return redirect(url_for("channels"))
-
-
 @app.route('/users', methods=["POST"])
 def register_user():
     collection = mongo_service.db()["user"]
