@@ -5,3 +5,7 @@ APPLICATION:
 MONGODB:
   HOST: "localhost"
   PORT: 27017
+WEBSERVER:
+  HOST: "localhost"
+  PORT: 5000
+

@@ -259,4 +259,6 @@ def delete_message(channel, index):
 
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5000, debug=handgun_config.debug_mode())
+    app.run(host=handgun_config.server_host(),
+            port=handgun_config.server_port(),
+            debug=handgun_config.debug_mode())
