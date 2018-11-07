@@ -22,6 +22,7 @@ from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from infrastructure import mongo_service
 from auth import authorization
+from endpoint import login
 import handgun_config
 
 
@@ -33,6 +34,9 @@ app.config["UPLOAD_FOLDER"] = upload_dir
 app.config['JSON_AS_ASCII'] = False
 CORS(app)
 _ALLOWED_EXTENSIONS = ["jpeg", "jpg", "png"]
+
+
+app.register_blueprint(login.blueprint)
 
 
 @app.route('/users', methods=["POST"])
@@ -75,26 +79,6 @@ def user_icon(username):
         if not files:
             abort(403)
         return send_from_directory(saved_dir, files[0])
-
-
-@app.route('/login', methods=["POST"])
-def login():
-    data = json.loads(request.data)
-    if not isinstance(data["username"], str):
-        abort(400)
-    if not isinstance(data["password"], str):
-        abort(400)
-    document_filter = {"name": data["username"]}
-    document = mongo_service.db()["user"].find_one(document_filter)
-    if document is None:
-        abort(400)
-    if not check_password_hash(document["password"], data["password"]):
-        abort(400)
-    return jsonify({"token":
-                    authorization.encode_jwt({
-                        "name": data["username"],
-                        "password": data["password"]}).decode()
-                   })
 
 
 @app.route('/users', methods=["GET"])
