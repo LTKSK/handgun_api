@@ -11,6 +11,7 @@ from endpoint import users
 from endpoint import channels
 from endpoint import review_targets
 from endpoint import messages
+from endpoint import layers
 import handgun_config
 
 
@@ -24,6 +25,7 @@ app.register_blueprint(users.blueprint)
 app.register_blueprint(channels.blueprint)
 app.register_blueprint(review_targets.blueprint)
 app.register_blueprint(messages.blueprint)
+app.register_blueprint(layers.blueprint)
 
 
 if __name__ == "__main__":
