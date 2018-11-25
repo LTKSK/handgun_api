@@ -38,8 +38,7 @@ def post_review_target(channel):
             abort(403)
         review_target.save(file_path)
         document = {"channel": channel,
-                    "name": filename,
-                    "layer": {}}
+                    "name": filename}
         review_target_collection.insert_one(document)
     return request.data
 
@@ -54,22 +53,3 @@ def get_review_target(channel):
     saved_dir = os.path.join(upload_dir, review_target_data["channel"])
     # now, one file only. multi file will be supported in the future.
     return send_from_directory(saved_dir, review_target_data["name"])
-
-
-@blueprint.route('/channels/<string:channel>/review-targets/layer',
-                 methods=["PUT"])
-def update_layer(channel):
-    data = json.loads(request.data)
-    collection = mongo_service.db()["review_target"]
-    collection.update_one(filter={"channel": channel},
-                          update={"$set": {"layer": data}})
-    return '', 204
-
-
-@blueprint.route('/channels/<string:channel>/review-targets/layer', methods=["GET"])
-def get_layer(channel):
-    collection = mongo_service.db()["review_target"]
-    document = collection.find_one({"channel": channel})
-    if not document:
-        return jsonify({})
-    return jsonify(document["layer"])

@@ -17,6 +17,8 @@ blueprint = Blueprint("layers", __name__)
 def layers(channel):
     collection = mongo_service.db()["layer"]
     response = collection.find_one({"channel": channel})
+    if response is None:
+        return jsonify([])
     response.pop("_id", None)
     return jsonify(response)
 
