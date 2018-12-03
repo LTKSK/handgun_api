@@ -23,7 +23,13 @@ python -m pip install -r requirements.txt
 # Please activate "mongodb" in your PC or Server.
 # This application will access to mongodb by pymongo.
 
-# and please check config/handgun_config.yml file.
+# and please rename config/handgun_config.example.yml => handgun_config.yml.
+# Then, modify handgun_config that you want.
+rename config\handgun_config.example.yml config\handgun_config.yml
+
+# or, on Linux
+mv ./config/handgun_config.example.yml config/handgun_config.yml
+
 # 'handgun_config.yml' has been described mongodb setting(now only described 'port' and 'host')
 # default port is '27017'. default host is 'localhost'
 
