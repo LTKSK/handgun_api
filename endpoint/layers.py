@@ -41,3 +41,12 @@ def update_layer(channel, id):
     collection.update_one(filter={"channel": channel},
                           update={"$set": {"layers": data}})
     return '', 204
+
+
+@blueprint.route('/layers/<string:channel>/<int:id>', methods=["DELETE"])
+def delete_layer(channel, id):
+    data = json.loads(request.data)
+    collection = mongo_service.db()["layer"]
+    collection.update_one(filter={"channel": channel},
+                          update={"$set": {"layers": data}})
+    return '', 204
