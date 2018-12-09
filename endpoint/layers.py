@@ -6,7 +6,8 @@ Copyright (C) 2018 Keisuke Tsuji
 """
 import os
 import json
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, make_response
+from pymongo.operations import DeleteMany
 from infrastructure import mongo_service
 
 
@@ -34,8 +35,8 @@ def update_layers(channel):
     return '', 204
 
 
-@blueprint.route('/layers/<string:channel>/<int:id>', methods=["PUT"])
-def update_layer(channel, id):
+@blueprint.route('/layers/<string:channel>/<int:layer_id>', methods=["PUT"])
+def update_layer(channel, layer_id):
     data = json.loads(request.data)
     collection = mongo_service.db()["layer"]
     collection.update_one(filter={"channel": channel},
@@ -43,10 +44,16 @@ def update_layer(channel, id):
     return '', 204
 
 
-@blueprint.route('/layers/<string:channel>/<int:id>', methods=["DELETE"])
-def delete_layer(channel, id):
-    data = json.loads(request.data)
+@blueprint.route('/layers/<string:channel>/<int:layer_id>', methods=["DELETE"])
+def delete_layer(channel, layer_id):
     collection = mongo_service.db()["layer"]
-    collection.update_one(filter={"channel": channel},
-                          update={"$set": {"layers": data}})
-    return '', 204
+    collection.delete_one({"channel": channel,
+                           "id": layer_id})
+
+    collection = mongo_service.db()["message"]
+    delete_operation = DeleteMany({"channel": channel,
+                                   "layer_id": layer_id})
+    collection.bulk_write(delete_operation)
+    response = make_response()
+    response.status_code = 204
+    return response
