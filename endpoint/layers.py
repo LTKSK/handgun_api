@@ -47,13 +47,15 @@ def update_layer(channel, layer_id):
 @blueprint.route('/layers/<string:channel>/<int:layer_id>', methods=["DELETE"])
 def delete_layer(channel, layer_id):
     collection = mongo_service.db()["layer"]
-    collection.delete_one({"channel": channel,
-                           "id": layer_id})
+    layer_data = collection.find_one({"channel": channel})
+    layer_data.layers.pop(layer_id)
+    layer = collection.update_one(filter={"channel": channel},
+                                  update=layer_data)
 
     collection = mongo_service.db()["message"]
     delete_operation = DeleteMany({"channel": channel,
                                    "layer_id": layer_id})
-    collection.bulk_write(delete_operation)
+    collection.bulk_write([delete_operation])
     response = make_response()
     response.status_code = 204
     return response
