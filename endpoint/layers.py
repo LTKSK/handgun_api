@@ -48,9 +48,10 @@ def update_layer(channel, layer_id):
 def delete_layer(channel, layer_id):
     collection = mongo_service.db()["layer"]
     layer_data = collection.find_one({"channel": channel})
-    layer_data.layers.pop(layer_id)
-    layer = collection.update_one(filter={"channel": channel},
-                                  update=layer_data)
+    layer_data["layers"] = [layer for layer in layer_data["layers"]
+                            if layer["id"] != layer_id]
+    collection.update_one(filter={"channel": channel},
+                          update={"$set": layer_data})
 
     collection = mongo_service.db()["message"]
     delete_operation = DeleteMany({"channel": channel,
