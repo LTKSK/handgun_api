@@ -35,7 +35,7 @@ def update_layers(channel):
     return '', 204
 
 
-@blueprint.route('/layers/<string:channel>/<int:layer_id>', methods=["PUT"])
+@blueprint.route('/layers/<string:channel>/<string:layer_id>', methods=["PUT"])
 def update_layer(channel, layer_id):
     data = json.loads(request.data)
     collection = mongo_service.db()["layer"]
@@ -44,7 +44,8 @@ def update_layer(channel, layer_id):
     return '', 204
 
 
-@blueprint.route('/layers/<string:channel>/<int:layer_id>', methods=["DELETE"])
+@blueprint.route('/layers/<string:channel>/<string:layer_id>',
+                 methods=["DELETE"])
 def delete_layer(channel, layer_id):
     collection = mongo_service.db()["layer"]
     layer_data = collection.find_one({"channel": channel})
