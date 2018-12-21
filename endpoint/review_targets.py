@@ -18,7 +18,8 @@ blueprint = Blueprint("review_targets", __name__)
 
 
 @blueprint.route('/channels/<string:channel>/review-targets', methods=["POST"])
-def post_review_target(channel):
+@authorization.require_auth
+def post_review_target(channel, authorized_user):
     if len(request.files) == 0:
         abort(400)
     # save files
@@ -38,13 +39,15 @@ def post_review_target(channel):
             abort(403)
         review_target.save(file_path)
         document = {"channel": channel,
-                    "name": filename}
+                    "name": filename,
+                    "users": [authorized_user]}
         review_target_collection.insert_one(document)
     return request.data
 
 
 # review_target end points
 @blueprint.route('/channels/<string:channel>/review-targets', methods=["GET"])
+# @authorization.require_auth
 def get_review_target(channel):
     collection = mongo_service.db()["review_target"]
     review_target_data = collection.find_one({"channel": channel})
