@@ -47,10 +47,11 @@ def post_review_target(channel, authorized_user):
 
 # review_target end points
 @blueprint.route('/channels/<string:channel>/review-targets', methods=["GET"])
-# @authorization.require_auth
-def get_review_target(channel):
+@authorization.require_auth
+def get_review_target(channel, authorized_user):
     collection = mongo_service.db()["review_target"]
-    review_target_data = collection.find_one({"channel": channel})
+    review_target_data = collection.find_one(
+        {"channel": channel, "users": {"$in": [authorized_user]}})
     if not review_target_data.get("name"):
         abort(404)
     saved_dir = os.path.join(upload_dir, review_target_data["channel"])
