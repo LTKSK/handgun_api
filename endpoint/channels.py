@@ -52,7 +52,14 @@ def delete_channel(channel, authorized_user):
     return response
 
 
-@blueprint.route('/channels/<string:channelname>/users', methods=["PUT"])
+@blueprint.route('/channels/<string:channel>/users', methods=["PUT"])
 @authorization.require_auth
 def put_channel_users(channel, authorized_user):
-    pass
+    collection = mongo_service.db()["channel"]
+    data = json.loads(request.data)
+    update = {"$set": {"users": data["users"]}}
+    collection.update_one(filter={"channel": channel,
+                                  "users": {"$in": [authorized_user]}},
+                          update=update,
+                          upsert=True)
+    return request.data
