@@ -1,4 +1,5 @@
 venv/
 *.pyc
 upload/
+handgun_config.yml
 
