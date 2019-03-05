@@ -7,11 +7,11 @@
 ## setup
 
 ``` bash
-# create virtualenviron
+# create virtual environment
 python -m virtualenv venv
 
 # activate
-.\venv\Scripts\activate.bat
+venv\Scripts\activate.bat
 
 # or, on Linux
 source ./venv/Scripts/activate
